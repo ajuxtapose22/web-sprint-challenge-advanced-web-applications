@@ -17,7 +17,6 @@ export default function App() {
   const [currentArticleId, setCurrentArticleId] = useState()
   const [spinnerOn, setSpinnerOn] = useState(false)
 
-  // ✨ Research `useNavigate` in React Router v.6
   const navigate = useNavigate()
   const redirectToLogin = () => {navigate('/') }
   const redirectToArticles = () => { navigate('/articles') }
@@ -28,52 +27,87 @@ export default function App() {
     redirectToLogin()
   }
 
-  const login = async ({ username, password }) => {
+  const login = ({ username, password }) => {
     setMessage('')
     setSpinnerOn(true)
-    try {
-      const { data } = await axios.post(loginUrl,
-        { username: username.trim(), password: password.trim()}
-      )
-      // console.log('fetch success', data)
-      localStorage.setItem('token', data.token)
-      setMessage('Login successful!')
+    axios.post(loginUrl, {
+      username: username.trim(),
+      password: password.trim()
+    })
+    .then(response => {
+      localStorage.setItem('token', response.data.token)
+      setMessage(`Here are your articles, ${username}`)
       redirectToArticles()
-    } catch (err) {
+    })
+    .catch(err => {
       setMessage('Login Failed')
       console.error(err)
-    } finally {
+    })
+    .finally(() => {
       setSpinnerOn(false)
-    }
+    })
   }
 
   const getArticles = () => {
-    // ✨ implement
-    // We should flush the message state, turn on the spinner
-    // and launch an authenticated request to the proper endpoint.
-    // On success, we should set the articles in their proper state and
-    // put the server success message in its proper state.
-    // If something goes wrong, check the status of the response:
-    // if it's a 401 the token might have gone bad, and we should redirect to login.
-    // Don't forget to turn off the spinner!
-
+    setMessage('')
+    setSpinnerOn(true)
+    const token = localStorage.getItem('token')
+    axios.get(articlesUrl, {
+      headers: { 
+        Authorization: token
+      }
+    })
+    .then((response) => {
+      setArticles(response.data.articles)
+      setMessage(response.data.message)
+    })
+    .catch((err) => {
+      if(err.response && err.response.status === 401) {
+        setMessage('Login Failed')
+        redirectToLogin()
+      } else {
+        setMessage("Failed to GET Articles")
+      }
+      console.error(err)
+    })
+    .finally(() => {
+      setSpinnerOn(false)
+    })
   }
 
   const postArticle = article => {
-    // ✨ implement
-    // The flow is very similar to the `getArticles` function.
-    // You'll know what to do! Use log statements or breakpoints
-    // to inspect the response from the server.
+    setMessage('')
+    setSpinnerOn(true)
+    const token = localStorage.getItem('token')
+    axios.post(articlesUrl, article, {
+      headers: { 
+        Authorization: token
+      }
+    })
+    .then((response) => {
+      setArticles([...articles, response.data.article])
+      setMessage(response.data.message)
+    })
+    .catch((err) => {
+        setMessage('Failed to POST Article')
+        console.error(err)
+    })
+    .finally(() => {
+      setSpinnerOn(false)
+    })
   }
 
   const updateArticle = ({ article_id, article }) => {
     // ✨ implement
     // You got this!
+
   }
 
   const deleteArticle = article_id => {
     // ✨ implement
+    
   }
+
 
   return (
     // ✨ fix the JSX: `Spinner`, `Message`, `LoginForm`, `ArticleForm` and `Articles` expect props ❗
@@ -91,8 +125,13 @@ export default function App() {
           <Route path="/" element={<LoginForm login={login}/>} />
           <Route path="articles" element={
             <>
-              <ArticleForm />
-              <Articles />
+              <ArticleForm postArticle={postArticle} />
+              <Articles 
+                getArticles={getArticles}
+                articles={articles}
+                deleteArticle={deleteArticle}
+                setCurrentArticleId={setCurrentArticleId}
+                currentArticleId={currentArticleId}/>
             </>
           } />
         </Routes>
