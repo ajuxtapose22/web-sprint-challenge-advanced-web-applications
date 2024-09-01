@@ -11,7 +11,7 @@ test('renders Spinner when ON prop is true ', () => {
 })
 
 test('renders Spinner when ON prop is false ', () => {
-  render(<Spinner on={true} />)
+  render(<Spinner on={false} />)
   expect(screen.queryByText("Please Wait...")).toBeNull()
 })
 
