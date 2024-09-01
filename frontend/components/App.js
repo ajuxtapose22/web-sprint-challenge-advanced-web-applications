@@ -63,7 +63,7 @@ export default function App() {
     })
     .catch((err) => {
       if(err.response && err.response.status === 401) {
-        setMessage('Login Failed')
+        setMessage('Ouch: jwt expired')
         redirectToLogin()
       } else {
         setMessage("Failed to GET Articles")
@@ -99,13 +99,48 @@ export default function App() {
 
   const updateArticle = ({ article_id, article }) => {
     // ✨ implement
-    // You got this!
-
+    setMessage('')
+    setSpinnerOn(true)
+    const token = localStorage.getItem('token')
+    axios.put(`http://localhost:9000/api/articles/${article_id}`, article, {
+      headers: { 
+        Authorization: token
+      }
+    })
+    .then((response) => {
+      const updatedArticle = response.data.article 
+      console.log(updatedArticle)
+      setArticles([...articles, response.data.article])
+      setMessage(response.data.message)
+    })
+    .catch((err) => {
+        setMessage('Failed to UPDATE Article')
+        console.error(err)
+    })
+    .finally(() => {
+      setSpinnerOn(false)
+    })
   }
 
   const deleteArticle = article_id => {
     // ✨ implement
-    
+    setMessage('')
+    setSpinnerOn(true)
+    const token = localStorage.getItem('token')
+    axios.delete(`http://localhost:9000/api/articles/${article_id}`, {
+      headers: { Authorization: token }
+    })
+    .then(response => {
+      setArticles(articles.filter(art => art.article_id !== article_id))
+      setMessage(response.data.message)
+    })
+    .catch(err => {
+      setMessage('Failed to DELETE Article')
+      console.error(err)
+    })
+    .finally(() => {
+      setSpinnerOn(false)
+    })
   }
 
 
@@ -125,7 +160,11 @@ export default function App() {
           <Route path="/" element={<LoginForm login={login}/>} />
           <Route path="articles" element={
             <>
-              <ArticleForm postArticle={postArticle} />
+              <ArticleForm
+                  postArticle={postArticle} 
+                  updateArticle={updateArticle} 
+                  setCurrentArticleId={setCurrentArticleId} 
+                  currentArticle={articles.find(art => art.article_id === currentArticleId)}  />
               <Articles 
                 getArticles={getArticles}
                 articles={articles}

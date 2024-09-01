@@ -33,11 +33,15 @@ if (!token) {
                   <p>{art.text}</p>
                   <p>Topic: {art.topic}</p>
                 </div>
+
                 <div>
-                  <button disabled={true} onClick={() => setCurrentArticleId(art.article.id)}>
-                    {currentArticleId === art.article_id ? 'Editing' : "Edit"}</button>
-                  <button disabled={true} onClick={() => deleteArticle(art.article_id)}>Delete</button>
+                  <button 
+                    onClick={() => setCurrentArticleId(art.article_id)}>
+                    {currentArticleId === art.article_id ? 'Editing' : 'Edit'}
+                  </button>
+                  <button onClick={() => deleteArticle(art.article_id)}>Delete</button>
                 </div>
+              
               </div>
             )
           })
